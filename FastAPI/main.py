@@ -1,6 +1,8 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from typing import Optional
+from pydantic import BaseModel
 
 app = FastAPI()
 
@@ -13,24 +15,21 @@ def home(request : Request):
         "index.html", {"request": request, "name": "DEV"}
     )
 
+@app.get('/home')
+def home(limit: int = 10, parameter: bool = True, sort: Optional[str] = None):
+    if parameter:
+        return {"Blogs" : f'{limit} is the no. of blog'}
+    else:
+        return {"Blogs": f'from else block {limit}'}
 
+class Hello(BaseModel):
+    firstName : str
+    lastName : str
+    published: Optional[bool]
 
+@app.post('/blog')
+def submit(request: Hello):
+    return {f"Fisrt name: {request.firstName}"
+            f", Last name: {request.lastName}"}
 
-# @app.get('/')
-# def home():
-#     return {"Hello World!..."}
-
-@app.get('/homepage')
-def homepage():
-    return "HomePage"
-
-
-@app.get('/homepage/{id}')
-def passid(id: int):
-    return {"ID:", id}
-
-@app.get('/homepage/check/{limi}')
-def passid(limi: int):
-    return {"Limit is: ",limi}
-
-
+    
