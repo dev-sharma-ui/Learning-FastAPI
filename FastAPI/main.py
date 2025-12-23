@@ -32,4 +32,3 @@ def submit(request: Hello):
     return {f"Fisrt name: {request.firstName}"
             f", Last name: {request.lastName}"}
 
-    
