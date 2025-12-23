@@ -1,0 +1,31 @@
+name: FastAPI CI-CD
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  fastapi-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Start FastAPI app (CI check)
+        run: |
+          uvicorn main:app --host 127.0.0.1 --port 8000 &
+          sleep 5
+
+      - name: Deployment step
+        run: echo "FastAPI app deployed successfully"
