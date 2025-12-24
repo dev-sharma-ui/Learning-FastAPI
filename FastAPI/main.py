@@ -22,6 +22,10 @@ def home(limit: int = 10, parameter: bool = True, sort: Optional[str] = None):
     else:
         return {"Blogs": f'from else block {limit}'}
 
+
+
+
+
 class Hello(BaseModel):
     firstName : str
     lastName : str
@@ -32,3 +36,19 @@ def submit(request: Hello):
     return {f"Fisrt name: {request.firstName}"
             f", Last name: {request.lastName}"}
 
+
+
+@app.get('/comments')
+def comments(three = 3):
+    return f"There are {three} comments"
+
+
+
+class project(BaseModel):
+    name: str
+    id: int
+    is_male: bool
+
+@app.post('/project')
+def small_project(project: project):
+    return {f"User name is {project.name} and user id is {project.id}"}
