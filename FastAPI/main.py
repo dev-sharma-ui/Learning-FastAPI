@@ -1,10 +1,17 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Path, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from typing import Optional
-from pydantic import BaseModel
+from typing import Optional, List, Dict
+from pydantic import BaseModel, Field
+import json
+
 
 app = FastAPI()
+
+def load_data():
+    with open('file.json', 'r') as f:
+        data = json.load(f)
+    return data
 
 
 templates = Jinja2Templates(directory="templates")
@@ -24,8 +31,6 @@ def home(limit: int = 10, parameter: bool = True, sort: Optional[str] = None):
 
 
 
-
-
 class Hello(BaseModel):
     firstName : str
     lastName : str
@@ -33,22 +38,42 @@ class Hello(BaseModel):
 
 @app.post('/blog')
 def submit(request: Hello):
-    return {f"Fisrt name: {request.firstName}"
-            f", Last name: {request.lastName}"}
+    return {
+                "Fisrt name: ": request.firstName,
+                "Last name: ": request.lastName
+           }
 
 
 
 @app.get('/comments')
-def comments(three = 3):
+def comments(three: int = 3):
     return f"There are {three} comments"
 
 
 
 class project(BaseModel):
-    name: str
+    name: str = Field(..., min_length=3, description="User Name", examples=["Dev Sharma"])
     id: int
-    is_male: bool
+    is_male: Optional[bool] = True
 
 @app.post('/project')
-def small_project(project: project):
-    return {f"User name is {project.name} and user id is {project.id}"}
+def small_project(request: project):
+    return {
+        "UserName: ": request.name,
+        "UserID: ": request.id,
+        "Is_Male: ": request.is_male
+    }
+
+
+@app.get('/view')
+def view_data():
+    data = load_data()
+    return data
+
+@app.get('/patients/{id}')
+def patients(id : str):
+    data = load_data()
+    if id in data:
+        return data[id]
+    raise HTTPException(status_code=404,detail='Patient not found')
+        
