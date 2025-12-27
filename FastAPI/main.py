@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Path, HTTPException
+from fastapi import FastAPI, Request, Path, HTTPException, Query
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from typing import Optional, List, Dict
@@ -76,4 +76,20 @@ def patients(id : str):
     if id in data:
         return data[id]
     raise HTTPException(status_code=404,detail='Patient not found')
-        
+
+@app.get('/sort')
+def sort_patients(sort_by: str = Query(..., description='Sort on the basis of height, weight or bmi'),
+                  order: str = Query('asc', description="Sort in asc or desc order")):
+    valid_fields = ['height', 'weight', 'bmi']
+    if sort_by not in valid_fields:
+        raise HTTPException(status_code=400, detail=f"Invalid Field Select from {valid_fields}")
+     
+    if order not in ['asc','desc']:
+        raise HTTPException(status_code=400, detail="Invalid Order, Select between asc or desc")
+    
+    data = load_data()
+    sort_order = True if order == 'desc' else False
+    sorted_data = sorted(data.values(), key=lambda x: x.get(sort_by,0), reverse=sort_order)
+
+    return sorted_data
+
