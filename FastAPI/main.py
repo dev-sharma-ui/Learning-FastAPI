@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Request, Path, HTTPException, Query
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from typing import Optional, List, Dict
-from pydantic import BaseModel, Field
+from typing import Optional, List, Dict, AnyStr
+from pydantic import BaseModel, Field, AnyUrl, EmailStr, field_validator
 import json
 
 
@@ -92,4 +92,45 @@ def sort_patients(sort_by: str = Query(..., description='Sort on the basis of he
     sorted_data = sorted(data.values(), key=lambda x: x.get(sort_by,0), reverse=sort_order)
 
     return sorted_data
+
+
+
+
+
+
+
+class ContactDetails(BaseModel):
+    phone: str = Field(..., min_length=10, max_length=15)
+    registration_no: str
+    roll_no: str
+
+class Patient(BaseModel):
+    name: str = Field(max_length=50, description="Name of the Patient", examples=["Dev","Yash"])
+    age: int = Field(gt = 0, description="Age of the Patient", examples=[45,52,64])
+    linkedin_url: Optional[AnyUrl] = None
+    email: Optional[EmailStr] = None
+    weight: float = Field(ge = 0) 
+    height: float = 170
+    married: bool = False
+    allergies: Optional[List[str]] = None
+    contact_details: ContactDetails
+
+    @field_validator('email')
+    @classmethod
+    def valid_email(cls, value):
+        valid_domains = ['hdfc.com','icici.com']
+        domain_name = value.split('@')[-1]
+        if domain_name not in valid_domains:
+            raise HTTPException(400, detail="Invalid User Email Domain")
+        
+        return value
+    
+    @field_validator('name')
+    @classmethod
+    def transfrom_name(cls, value):
+        return value.upper()
+    
+@app.post('/details')
+def patient_details(details: Patient):
+    return details
 
