@@ -35,6 +35,14 @@ class Patient(BaseModel):
             return "Obese"
         
 
+class PatientUpdate(BaseModel):
+    name: Optional[str] = Field(default=None)
+    city: Optional[str] = Field(default=None)
+    age: Optional[int] = Field(default=None)
+    gender: Optional[str] = Field(default=None)
+    height: Optional[float] = Field(default=None)
+    weight: Optional[float] = Field(default=None)
+
 def load_data():
     with open('file.json', 'r') as f:
         data = json.load(f)
@@ -66,5 +74,30 @@ def create(patient: Patient):
     return JSONResponse(status_code=201, content={'message': 'Pateint has been created successfully'})
 
 
+@app.put('/edit/{patient_id}')
+def update_patient(patient_id: str, patient_update: PatientUpdate):
 
+    data = load_data()
+
+    if patient_id not in data:
+        raise HTTPException(status_code=404, detail="Patient not found")
+    
+    existing_patient_info = data[patient_id]
+
+    updated_patient_info = patient_update.model_dump(exclude_unset=True)
+
+    for key,value in updated_patient_info.items():
+        existing_patient_info[key] = value
+    
+    existing_patient_info['id'] = patient_id
+
+    patient_pydantic_obj = Patient(**existing_patient_info)
+
+    existing_patient_info = patient_pydantic_obj.model_dump(exclude='id')
+
+    data[patient_id] = existing_patient_info
+
+    save_data(data)
+
+    return {"message" :"Patient Updated Successfully"}
 
